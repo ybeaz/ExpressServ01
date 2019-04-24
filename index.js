@@ -20,7 +20,10 @@ const startUserSession = require('./controllers/startUserSession')
 const saveUserVisitActions = require('./controllers/saveUserVisitActions')
 
 const { APP_PORT, APP_IP, APP_PATH } = process.env
-const DB_CONNECTION_STRING = 'mongodb://c3550_mdb_sitewindows_com:YeMmoDacnibex39@mongo1.c3550.h2,mongo2.c3550.h2,mongo3.c3550.h2/c3550_mdb_sitewindows_com?replicaSet=MongoReplica'
+//const DB_CONNECTION_STRING = 'mongodb://c3550_mdb_sitewindows_com:YeMmoDacnibex39@mongo1.c3550.h2,mongo2.c3550.h2,mongo3.c3550.h2/c3550_mdb_sitewindows_com?replicaSet=MongoReplica'
+//const dbName = 'c3550_mdb_sitewindows_com'
+const DB_CONNECTION_STRING = 'mongodb://127.0.0.1:27017/db?gssapiServiceName=mongodb'
+const dbName = 'db'
 
 const app = express()
 
@@ -79,8 +82,7 @@ app.post('/api/apiP2p', (req, res) => {
     // Save user visit actions 'SAVE_USER_VISIT_ACTIONS' saveUserVisitActions
     case 'suva':
       {
-        const dbName02 = 'c3550_mdb_sitewindows_com'
-        saveUserVisitActions(req, res, MongoClient, dbName02, DB_CONNECTION_STRING)
+        saveUserVisitActions(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
       }
       break
 
@@ -99,7 +101,6 @@ app.get('/api/apiP2p', (req, res) => {
     // Return report to developers and market analytics GET_USER_ANALYTICS_DATA -> getUserAnalyticsData
     case 'guad':
       {
-        const dbName = 'c3550_mdb_sitewindows_com'
         getUserAnalyticsData(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
       }
       break
@@ -107,8 +108,7 @@ app.get('/api/apiP2p', (req, res) => {
     // Save user visit actions START_USER_SESSION -> startUserSession
     case 'sus':
       {
-        const dbName01 = 'c3550_mdb_sitewindows_com'
-        startUserSession(req, res, MongoClient, dbName01, DB_CONNECTION_STRING)
+        startUserSession(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
       }
       break
 
@@ -132,7 +132,7 @@ app.get('/hello_world/user/:first?/:second?', (req, res) => {
   const paramsJson = JSON.stringify(req.params)
 
   // console.info('app.get', first, ' ', second, ' [params]', paramsJson, ' [query]', queryJson, ' [ip]', req.ip)
-  const h1 = 'Hi ' + first + ' ' + second + '! ---14'
+  const h1 = 'Hi ' + first + ' ' + second + '!'
   const p1 = 'This server uses a <a href="https://pugjs.org/api/getting-started.html" target="_blank">pug template</a> for the html output'
   const p2 = 'This sever supports API get requests with query parameters ' + queryJson
   const f1 = 'For support, please, call +1 650 7 410014'
