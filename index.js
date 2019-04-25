@@ -15,9 +15,8 @@ const MongoClient = require('mongodb').MongoClient
 const serviceFunc = require('./shared/serviceFunc')
 const logging = require('./shared/logging')
 
-const getUserAnalyticsData = require('./controllers/getUserAnalyticsData')
-const startUserSession = require('./controllers/startUserSession')
-const saveUserVisitActions = require('./controllers/saveUserVisitActions')
+const getUserAnalytics = require('./controllers/getUserAnalytics')
+const saveUserAnalytics = require('./controllers/saveUserAnalytics')
 
 const { APP_PORT, APP_IP, APP_PATH } = process.env
 //const DB_CONNECTION_STRING = 'mongodb://c3550_mdb_sitewindows_com:YeMmoDacnibex39@mongo1.c3550.h2,mongo2.c3550.h2,mongo3.c3550.h2/c3550_mdb_sitewindows_com?replicaSet=MongoReplica'
@@ -43,6 +42,7 @@ app.use(session({
   secret: 'keyboard abc',
   resave: false,
   saveUninitialized: true,
+  cookie: { secure: false },
 }))
 app.use(express.static(path.join(__dirname, 'www')))
 app.use(nocache())
@@ -82,7 +82,7 @@ app.post('/api/apiP2p', (req, res) => {
     // Save user visit actions 'SAVE_USER_VISIT_ACTIONS' saveUserVisitActions
     case 'suva':
       {
-        saveUserVisitActions(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
+        saveUserAnalytics(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
       }
       break
 
@@ -98,17 +98,17 @@ app.get('/api/apiP2p', (req, res) => {
 
   switch (req.query.optGet) {
 
-    // Return report to developers and market analytics GET_USER_ANALYTICS_DATA -> getUserAnalyticsData
+    // Return report to developers and market analytics GET_USER_ANALYTICS_DATA -> getUserAnalytics
     case 'guad':
       {
-        getUserAnalyticsData(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
+        getUserAnalytics(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
       }
       break
 
     // Save user visit actions START_USER_SESSION -> startUserSession
     case 'sus':
       {
-        startUserSession(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
+        saveUserAnalytics(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
       }
       break
 
