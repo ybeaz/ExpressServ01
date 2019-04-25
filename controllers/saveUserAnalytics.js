@@ -2,9 +2,9 @@ const session = require('express-session')
 const moment = require('moment')
 const logging = require('../shared/logging')
 
-const startUserSession = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) => {
+const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) => {
 
-  let stage
+  let stage = 'inception'
   MongoClient.connect(DB_CONNECTION_STRING, { useNewUrlParser: true }, async (err, client) => {
     if (err) throw err
     const db = client.db(dbName)
@@ -35,18 +35,21 @@ const startUserSession = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) =
         })
     }
 
-    const updatePromise = () => {
-      return new Promise((resolve, reject) => {
-
-        db.collection('webAnalytics')
-          .find({ 'PHPSESSID': req.session.id }, { _id: 0 })
-          // .sort({ _id: -1 })
-          .toArray((err, data) => {
-            err
-              ? reject(err)
-              : resolve(data)
-          })
-      })
+    const updatePromise = query => {
+      db.collection('webAnalytics')
+        .updateMany(
+          { 'PHPSESSID': req.session.id }, 
+          { $set: { ...query }}, 
+          { upsert: true },
+          (errUpdate, response) => {
+            if (errUpdate) {
+              console.error(errUpdate.message)
+              return errUpdate.message
+            }
+            // console.log('inserted record', response.ops[0])
+            return response.ops[0]
+          },
+        )
     }
 
     const record = await findPromise()
@@ -59,10 +62,10 @@ const startUserSession = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) =
     }
 
     // First time startSession
-    let insertResult
+    let result
     const target = JSON.parse(req.query.target)
     const { query: insertQuery } = req
-    const insertData = {
+    const dataNext = {
       ...insertQuery,
       PHPSESSID: req.session.id,
       start: moment().format('YYYY-MM-DD HH:mm'),
@@ -74,44 +77,22 @@ const startUserSession = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) =
       && target.length === 1
     ) {
       // console.info('startUserSession [7]', { query: req.query })
-      insertResult = await insertPromise(insertData)
+      result = await insertPromise(dataNext)
       stage = 'First time startSession'
-      console.info('startUserSession [8]', { insertResult })
+      console.info('startUserSession [8]', { result })
     }
+    //Update user analytics
     else if (
       req.session.id !== undefined
       && record.length > 0
       && target.length === 1
       && target[0] !== 'startSession'
     ) {
-
-
+      stage = 'Update user analytics'
+      result = await updatePromise(dataNext)
     }
 
-
-    /*
-    else if (empty($data->PHPSESSID) === false
-    ) {
-      try {
-        $bulkWrite = new MongoDB\Driver\BulkWrite;
-        $filter    = ['PHPSESSID' => $dataNext->PHPSESSID];
-        $update    = ['$set' => $dataNext];
-        $options   = ['multi' => false, 'upsert' => true];
-        $bulkWrite->update($filter, $update, $options);
-        $this->manager->executeBulkWrite($this->db02.'.webAnalytics', $bulkWrite);
-        $status['step03'] = 'updated Ok';
-      } catch (MongoDB\Driver\Exception\Exception $e) {
-        // print_r(['$dataNext' => $dataNext, '$record' => $record, '$data' => $data, '$status' => $status]);
-        $filename = basename(__FILE__); 
-        echo "The $filename script has experienced an error.\n";
-        echo "insertUpdateDocWithPermissionMdb->step 3 case 1 update:\n";
-        echo "It failed with the following exception:\n"; 
-        echo "Exception:", $e->getMessage(), "\n";
-        $status['step03'] = 'Update. Exception: '.$e->getMessage().'\n';
-      }
-    }
-    */
-    const recordJson = JSON.stringify({ record, insertData, insertResult })
+    const recordJson = JSON.stringify({ stage, record, dataNext, result })
 
     //continue execution
     
@@ -130,4 +111,4 @@ const startUserSession = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) =
   */
 }
 
-module.exports = startUserSession
+module.exports = saveUserAnalytics

@@ -10,9 +10,8 @@ const nocache = require('nocache')
 const path = require('path')
 const http = require('http')
 
-const MongoClient = require('mongodb').MongoClient
+const { MongoClient } = require('mongodb')
 
-const serviceFunc = require('./shared/serviceFunc')
 const logging = require('./shared/logging')
 
 const getUserAnalytics = require('./controllers/getUserAnalytics')
