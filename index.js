@@ -17,11 +17,23 @@ const logging = require('./shared/logging')
 const getUserAnalytics = require('./controllers/getUserAnalytics')
 const saveUserAnalytics = require('./controllers/saveUserAnalytics')
 
+const environment = 'prod' //prod
 const { APP_PORT, APP_IP, APP_PATH } = process.env
-//const DB_CONNECTION_STRING = 'mongodb://c3550_mdb_sitewindows_com:YeMmoDacnibex39@mongo1.c3550.h2,mongo2.c3550.h2,mongo3.c3550.h2/c3550_mdb_sitewindows_com?replicaSet=MongoReplica'
-//const dbName = 'c3550_mdb_sitewindows_com'
-const DB_CONNECTION_STRING = 'mongodb://127.0.0.1:27017/db?gssapiServiceName=mongodb'
-const dbName = 'db'
+let appPort
+let DB_CONNECTION_STRING
+let dbName
+
+// Setting variables depending on environment
+if (environment === 'dev') {
+  appPort = 8081
+  DB_CONNECTION_STRING = 'mongodb://127.0.0.1:27017/db?gssapiServiceName=mongodb'
+  dbName = 'db'
+}
+else if (environment === 'prod') {
+  appPort = APP_PORT
+  DB_CONNECTION_STRING = 'mongodb://c3550_mdb_sitewindows_com:YeMmoDacnibex39@mongo1.c3550.h2,mongo2.c3550.h2,mongo3.c3550.h2/c3550_mdb_sitewindows_com?replicaSet=MongoReplica'
+  dbName = 'c3550_mdb_sitewindows_com'
+}
 
 const app = express()
 
@@ -35,7 +47,9 @@ app.use(logging.logErrors)
 app.use(logging.clientErrorHandler)
 app.use(logging.errorHandler)
 app.use(methodOverride())
-app.use(bodyParser.json()) // ???
+app.use(bodyParser.urlencoded({
+  extended: true,
+}))
 app.use(cookieParser())
 app.use(session({
   secret: 'keyboard abc',
@@ -86,7 +100,7 @@ app.post('/api/apiP2p', (req, res) => {
       break
 
     default: {
-      console.info('post unexpected optPost', req.query.optPost)
+      console.info('post unexpected optPost', req.query.optPost, ' ', req.query)
     }
   }
 })
@@ -140,6 +154,6 @@ app.get('/hello_world/user/:first?/:second?', (req, res) => {
 })
 
 //const server = app.listen(APP_PORT, 57926, () => {
-const server = app.listen(8081, () => {
+const server = app.listen(appPort, () => {
   const { address: host, port } = server.address()
 })
