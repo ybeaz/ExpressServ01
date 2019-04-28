@@ -1,20 +1,22 @@
 const moment = require('moment')
 const serviceFunc = require('../shared/serviceFunc')
+const uuidv4 = require('uuid/v4')
 
 const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) => {
 
   let stage = 'inception'
   let result
+  let webAnalyticsSid = req.cookies.webAnalyticsSid || ''
 
   MongoClient.connect(DB_CONNECTION_STRING, { useNewUrlParser: true }, async (err, client) => {
     if (err) throw err
     const db = client.db(dbName)
- 
-    const findPromise = () => {
+
+    const findPromise = webAnalyticsSid => {
       return new Promise((resolve, reject) => {
 
         db.collection('webAnalytics')
-          .find({ 'PHPSESSID': req.session.id }, { _id: 0 })
+          .find({ 'PHPSESSID': webAnalyticsSid }, { _id: 0 })
           // .sort({ _id: -1 })
           .toArray((errFind, resFind) => {
             errFind
@@ -59,18 +61,41 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
       })
     }
 
-    const record = await findPromise()
+    const record = await findPromise(webAnalyticsSid)
 
-    const { query: data } = req
-    const target = JSON.parse(data.target)
+    const { query: queryToProcess, body: bodyToProcess } = req
+    console.info('saveUserAnalytics [4]', { 'webAnalyticsSid': webAnalyticsSid, record, queryToProcess, bodyToProcess })
+
+
+    let data
+    let target
+    if (queryToProcess && JSON.stringify(queryToProcess) !== '{}') {
+      data = queryToProcess
+      target = JSON.parse(data.target)
+    }
+    else if (bodyToProcess && bodyToProcess !== '{}') {
+      data = JSON.parse(bodyToProcess)
+      const { target: targetArr } = data
+      target = targetArr
+    }
+    else {
+      console.info('saveUserAnalytics strange req', { queryToProcess, bodyToProcess })
+    }
+
+    // console.info('saveUserAnalytics [5]', { target, data })
+
     let dataNext = {
       finish: moment().format('YYYY/MM/DD HH:mm:ss'),
     }
 
     // Case sessionStart
     if (record.length === 0) {
+      webAnalyticsSid = uuidv4()
+      const domain = `.${data.hostname}`
+      console.info('saveUserAnalytics [6]', { webAnalyticsSid, domain, queryToProcess, data })
+      res.cookie('analyticsSid', webAnalyticsSid, { domain: 'userto.com', secure: false, maxAge: 21600000 })
       dataNext = {
-        PHPSESSID: req.session.id,
+        PHPSESSID: webAnalyticsSid,
         start: moment().format('YYYY/MM/DD HH:mm:ss'),
         ...dataNext,
         ...data,
@@ -113,6 +138,7 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
     dataNext.email = serviceFunc.getArrToSave(data.email, dataNext.email, 'add', data.target)
 
 
+    // console.info('saveUserAnalytics [7]', { 'req.session.id': req.session.id, record, 'record.length': record.length, target, dataNext })
 
     // First time startSession
     if (req.session.id !== undefined
@@ -125,7 +151,7 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
       stage = 'First time startSession'
       // console.info('startUserSession [8]', { result })
     }
-    //Update user analytics
+    // Update user analytics
     else if (
       req.session.id !== undefined
       && record.length > 0
@@ -134,18 +160,18 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
     ) {
       stage = 'Update user analytics'
       result = await updatePromise(dataNext)
-      // console.info('Update user analytics [9]', { result })
+      console.info('Update user analytics [9]', { result })
       result = result || 'Ok'
     }
 
-    const recordJson = JSON.stringify({ stage, record, dataNext, result })
-
-    //continue execution
-    
-    // console.info('startUserSession [10]', { recordJson })
-    res.setHeader('Content-Type', 'application/x-www-form-urlencoded')
-    return res.end(recordJson)
     client.close()
+
+    // application/x-www-form-urlencoded
+    const recordJson = JSON.stringify({ stage, record, dataNext, result })
+    // console.info('saveUserAnalytics [10]', { recordJson })
+    res.setHeader('Content-Type', 'text/plain')
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    return res.send(recordJson)
   })
 
   /*

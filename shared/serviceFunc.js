@@ -12,22 +12,24 @@ const empty = mixedVar => {
   return false
 }
 
+const mixedVarToArray = mixedVar => {
+  let output
+  if (mixedVar === undefined) {
+    output = []
+  }
+  else if (typeof mixedVar === 'string') {
+    output = [mixedVar]
+  }
+  else {
+    output = mixedVar
+  }
+  return output
+}
+
 const array_merge = (dataNext, data) => {
-  let dataNext1
-  let data1
-  if (typeof dataNext === 'string') {
-    dataNext1 = [dataNext]
-  }
-  else if (dataNext === undefined) {
-    dataNext1 = []
-  }
-  if (typeof data === 'string') {
-    data1 = [data]
-  }
-  else if (data === undefined) {
-    data1 = []
-  }
-  // console.info('array_merge', dataNext, data)
+  const dataNext1 = mixedVarToArray(dataNext)
+  const data1 = mixedVarToArray(data)
+  // console.info('array_merge', { dataNext1, data1, dataNext, data })
   return [...data1, ...dataNext1]
 }
 
