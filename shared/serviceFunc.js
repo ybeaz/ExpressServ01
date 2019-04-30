@@ -1,13 +1,26 @@
 
 const empty = mixedVar => {
+  // console.info('empty', { mixedVar })
   if (!mixedVar || mixedVar === '0') {
     return true
   }
+
   if (typeof mixedVar === 'object') {
     for (var k in mixedVar) {
       return false
     }
     return true
+  }
+
+  if (toString.call(mixedVar) === '[object Array]'
+    && mixedVar.length === 0
+  ) {
+    return true
+  }
+  else if (toString.call(mixedVar) === '[object Array]'
+    && mixedVar.length > 0
+  ) {
+    return false
   }
   return false
 }
@@ -42,117 +55,99 @@ const array_filter = (data, param) => {
   return data.filter(item => item.length > 0)
 }
 
-const getArrToSave = (data, dataNextInp, caseOption, target) => {
+const getArrToSave = (record, dataInp, caseOption, target) => {
 
-  const data0 = data && data[0] ? data[0] : ''
-  const dataNext0 = dataNextInp && dataNextInp[0] ? dataNextInp[0] : ''
+  const record0 = record && record[0] ? record[0] : ''
+  const dataInp0 = dataInp && dataInp[0] ? dataInp[0] : ''
   const target0 = target && target[0] ? target[0] : ''
   let dataNext
 
   if (caseOption === 'add') {
-    // prev = preg_replace('/^([\s\S]*)(,\s)([\S]*)/imxuU', '3', dataNext->searchMedia)
-    if (empty(data0) === true && empty(dataNext0) === true) {
+    if (empty(record0) === true && empty(dataInp0) === true) {
       dataNext = []
     }
-    else if (empty(data0) === false && empty(dataNext0) === true) {
-      dataNext = data
-      // print_r(['getArrToSave__data 1' => data, 'dataNext' => dataNext])
+    else if (empty(record0) === false && empty(dataInp0) === true) {
+      dataNext = record
     }
-    else if (empty(data0) === true && empty(dataNext0) === false) {
-      dataNext = dataNext
-      // print_r(['getArrToSave__data 2' => data, 'dataNext' => dataNext])
+    else if (empty(record0) === true && empty(dataInp0) === false) {
+      dataNext = dataInp
     }
-    else if (empty(data0) === false && empty(dataNext0) === false) {
-      dataNext = array_merge(dataNext, data)
+    else if (empty(record0) === false && empty(dataInp0) === false) {
+      dataNext = array_merge(record, dataInp)
+      // console.info('getArrToSave [5]', { dataNext, dataInp, record })
       dataNext = array_unique(dataNext)
+      // console.info('getArrToSave [7]', { dataNext })
       dataNext = array_filter(dataNext, 'strlen')
-      // print_r(['getArrToSave__data 3' => data, 'dataNext' => dataNext])
+      // console.info('getArrToSave [9]', { dataNext })
     }
   }
 
   if (caseOption === 'addAll') {
-    // prev = preg_replace('/^([\s\S]*)(,\s)([\S]*)/imxuU', '3', dataNext->searchMedia)
-    if (empty(data0) === true && empty(dataNext0) === true) {
+    if (empty(record0) === true && empty(dataInp0) === true) {
       dataNext = []
     }
-    else if (empty(data0) === false && empty(dataNext0) === true) {
-      dataNext = data
-      // print_r(['getArrToSave__data 1' => data, 'dataNext' => dataNext])
+    else if (empty(record0) === false && empty(dataInp0) === true) {
+      dataNext = record
     }
-    else if (empty(data0) === true && empty(dataNext0) === false) {
-      dataNext = dataNext
-      // print_r(['getArrToSave__data 2' => data, 'dataNext' => dataNext])
+    else if (empty(record0) === true && empty(dataInp0) === false) {
+      dataNext = dataInp
     }
-    else if (empty(data0) === false && empty(dataNext0) === false) {
-      dataNext = array_merge(dataNext, data)
-      //dataNext = array_unique(dataNext)
+    else if (empty(record0) === false && empty(dataInp0) === false) {
+      dataNext = array_merge(record, dataInp)
       dataNext = array_filter(dataNext, 'strlen')
-      // print_r(['getArrToSave__data 3' => data, 'dataNext' => dataNext])
     }
   }
 
   else if (caseOption === 'new') {
-    if (empty(data0) === true && empty(dataNext0) === true) {
+    // console.info('getArrToSave', { record0, 'empty(record0)': empty(record0), dataInp0, 'empty(dataInp0)': empty(dataInp0), dataInp, record })
+
+    if (empty(record0) === true && empty(dataInp0) === true) {
       dataNext = []
     }
-    else if (empty(data0) === false && empty(dataNext0) === true) {
-      dataNext = data
-      // print_r(['getArrToSave__data 1' => data, 'dataNext' => dataNext])
+    else if (empty(record0) === false && empty(dataInp0) === true) {
+      dataNext = record
     }
-    else if (empty(data0) === true && empty(dataNext0) === false) {
-      dataNext = dataNext
+    else if (empty(record0) === true && empty(dataInp0) === false) {
+      dataNext = dataInp
     }
-    else if (empty(data0) === false
-        && empty(data0) === false
+    else if (empty(record0) === false && empty(dataInp0) === false
         && target0 === 'startSession'
     ) {
-      dataNext = array_merge(dataNext, data)
-      // print_r(['getArrToSave__data 2' => data, 'dataNext' => dataNext])
+      dataNext = array_merge(dataInp, record)
     }
-    else if (empty(data0) === false
-        && empty(dataNext) === false
+    else if (empty(record0) === false && empty(dataInp0) === false
         && target0 !== 'startSession'
     ) {
-      dataNext = data
-      // print_r(['getArrToSave__data 3' => data, 'dataNext' => dataNext])
+      dataNext = dataInp
     }
   }
 
   else if (caseOption === 'max') {
-    if (empty(data0) === true && empty(dataNext0) === true) {
+
+    if (dataInp0 === 'registration02'
+    ) {
+      dataNext = dataInp
+    }
+    else if (dataInp0 === 'registration01'
+        && record0 !== 'registration02'
+    ) {
+      dataNext = dataInp
+    }
+    else if (record0 === 'registration02'
+    ) {
+      dataNext = record
+    }
+    else if (empty(record0) === true && empty(dataInp0) === true) {
       dataNext = []
     }
-    else if (empty(data0) === false && empty(dataNext0) === true) {
-      dataNext = data
-      // print_r(['getArrToSave__data 1' => data, 'dataNext' => dataNext])
+    else if (empty(record0) === true && empty(dataInp0) === false) {
+      dataNext = dataInp
     }
-    else if (empty(data0) === true && empty(dataNext0) === false) {
-      dataNext = dataNext
-      // print_r(['getArrToSave__data 2' => data, 'dataNext' => dataNext])
+    else if (empty(record0) === false && empty(dataInp0) === true) {
+      dataNext = record0
     }
-
-    else if (dataNext0 === 'registration02'
-    ) {
-      dataNext = dataNext
-      // print_r(['getArrToSave__data 3' => data, 'dataNext' => dataNext])
-    }
-    else if (dataNext0 === 'registration01'
-        && data0 !== 'registration02'
-    ) {
-      dataNext = dataNext
-      // print_r(['getArrToSave__data 4' => data, 'dataNext' => dataNext])
-    }
-    else if (data0 === 'registration02'
-    ) {
-      dataNext = data
-      // print_r(['getArrToSave__data 5' => data, 'dataNext' => dataNext])
-    }
-    else if (dataNext0 !== 'registration02'
-        && dataNext0 !== 'registration01'
-        && empty(data0) === false
-    ) {
-      dataNext = data
-      // print_r(['getArrToSave__data 6' => data, 'dataNext' => dataNext])
+    else if (empty(record0) === false && empty(dataInp0) === false) {
+      dataNext = dataInp
     }
   }
 

@@ -10,11 +10,12 @@ const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const favicon = require('favicon')
 const session = require('express-session')
+const uuidv4 = require('uuid/v4')
 
 const nocache = require('nocache')
 const path = require('path')
-const http = require('http')
-const https = require('https')
+// const http = require('http')
+// const https = require('https')
 
 const { MongoClient } = require('mongodb')
 
@@ -157,10 +158,10 @@ app.get('/hello_world/user/:first?/:second?', (req, res) => {
   const queryJson = JSON.stringify(req.query)
   const paramsJson = JSON.stringify(req.params)
 
-  res.cookie('analyticsSid', 'webAnalyticsSid', { httpOnly: false, domain: 'localhost', maxAge: 21600000 })
+  if (req.cookies.anltSidRender === undefined) {
+    res.cookie('anltSidRender', uuidv4(), { httpOnly: false, domain: '', maxAge: 21600000 })
+  }
   // res.cookie( 'key', 'value', { maxAge: 1000 * 60 * 10, httpOnly: false })
-
-  console.info('index.js app.get ', req.cookies.analyticsSid)
 
   // console.info('app.get', first, ' ', second, ' [params]', paramsJson, ' [query]', queryJson, ' [ip]', req.ip)
   const h1 = 'Hi ' + first + ' ' + second + '!'

@@ -1,22 +1,21 @@
 const moment = require('moment')
-const serviceFunc = require('../shared/serviceFunc')
 const uuidv4 = require('uuid/v4')
+const serviceFunc = require('../shared/serviceFunc')
 
 const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) => {
 
   let stage = 'inception'
   let result
-  let webAnalyticsSid = req.cookies.webAnalyticsSid || ''
 
   MongoClient.connect(DB_CONNECTION_STRING, { useNewUrlParser: true }, async (err, client) => {
     if (err) throw err
     const db = client.db(dbName)
 
-    const findPromise = webAnalyticsSid => {
+    const findPromise = sid => {
       return new Promise((resolve, reject) => {
 
         db.collection('webAnalytics')
-          .find({ 'PHPSESSID': webAnalyticsSid }, { _id: 0 })
+          .find({ 'PHPSESSID': sid }, { _id: 0 })
           // .sort({ _id: -1 })
           .toArray((errFind, resFind) => {
             errFind
@@ -44,37 +43,40 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
 
     const updatePromise = query => {
       return new Promise((resolve, reject) => {
-        db.collection('webAnalytics')
-          .updateOne(
-            { 'PHPSESSID': req.session.id }, 
-            { $set: { ...query } },
-            { upsert: true },
-            (errUpdate, resUpdate) => {
-              if (errUpdate) {
-                console.error(errUpdate.message)
-                reject(errUpdate.message)
-              }
-              // console.log('updated record', resUpdate.result)
-              resolve(resUpdate.result)
-            },
-          )
+        try {
+          db.collection('webAnalytics')
+            .updateOne(
+              { 'PHPSESSID': query.PHPSESSID }, 
+              { $set: { ...query } },
+              { upsert: true },
+              (errUpdate, resUpdate) => {
+                if (errUpdate) {
+                  console.error(errUpdate.message)
+                  reject(errUpdate.message)
+                }
+                // console.log('saveUserAnalytics (updatePromise) [3]', resUpdate)
+                resolve(resUpdate)
+              },
+            )} catch (errUpdatePromise) {
+          console.info('errUpdatePromise: ', errUpdatePromise)
+        }
       })
     }
 
-    const record = await findPromise(webAnalyticsSid)
-
     const { query: queryToProcess, body: bodyToProcess } = req
-    console.info('saveUserAnalytics [4]', { 'webAnalyticsSid': webAnalyticsSid, record, queryToProcess, bodyToProcess })
-
 
     let data
     let target
+    let utAnltSid
+    let record0 = []
     if (queryToProcess && JSON.stringify(queryToProcess) !== '{}') {
       data = queryToProcess
+      utAnltSid = data.utAnltSid
       target = JSON.parse(data.target)
     }
     else if (bodyToProcess && bodyToProcess !== '{}') {
       data = JSON.parse(bodyToProcess)
+      utAnltSid = data.utAnltSid
       const { target: targetArr } = data
       target = targetArr
     }
@@ -82,95 +84,107 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
       console.info('saveUserAnalytics strange req', { queryToProcess, bodyToProcess })
     }
 
+    // Make request to the COllection from MongoDB about existing of the Domenentr
+    // console.info('saveUserAnalytics [4]', { utAnltSid, queryToProcess, bodyToProcess })
+    const record = await findPromise(utAnltSid)
+
     // console.info('saveUserAnalytics [5]', { target, data })
 
     let dataNext = {
-      finish: moment().format('YYYY/MM/DD HH:mm:ss'),
+      PHPSESSID: utAnltSid,
     }
 
     // Case sessionStart
     if (record.length === 0) {
-      webAnalyticsSid = uuidv4()
-      const domain = `.${data.hostname}`
-      console.info('saveUserAnalytics [6]', { webAnalyticsSid, domain, queryToProcess, data })
-      res.cookie('analyticsSid', webAnalyticsSid, { domain: 'userto.com', secure: false, maxAge: 21600000 })
+
+      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
       dataNext = {
-        PHPSESSID: webAnalyticsSid,
         start: moment().format('YYYY/MM/DD HH:mm:ss'),
+        ip,
         ...dataNext,
         ...data,
+        finish: moment().format('YYYY/MM/DD HH:mm:ss'),
       }
     }
     // Case sessionUpdate
     else if (record.length > 0) {
       // DataNext from record, start with previous version.
-      const [record0] = record
-      dataNext = { ...dataNext, ...record0 }
+      record0 = record[0]
+      delete record0['_id']
+
+      dataNext = {
+        ...dataNext,
+        ...record0,
+        finish: moment().format('YYYY/MM/DD HH:mm:ss'),
+      }
+
     }
+
+    // console.info('saveUserAnalytics [6]', { record, data, dataNext })
 
     // Transform data to array
     // Target, max [].
-    dataNext.target = serviceFunc.getArrToSave(data.target, dataNext.target, 'max', data.target)
+    dataNext.target = serviceFunc.getArrToSave(record0.target, data.target, 'max', data.target)
 
     // ActionLog, new [].
-    dataNext.actionLog = serviceFunc.getArrToSave(data.actionLog, dataNext.actionLog, 'new', data.target)
+    dataNext.actionLog = serviceFunc.getArrToSave(record0.actionLog, data.actionLog, 'new', data.target)
 
     // Topic, add [].
-    dataNext.topic = serviceFunc.getArrToSave(data.topic, dataNext.topic, 'add', data.target)
+    dataNext.topic = serviceFunc.getArrToSave(record0.topic, data.topic, 'add', data.target)
 
     // Msg, add [].
-    dataNext.msg = serviceFunc.getArrToSave(data.msg, dataNext.msg, 'add', data.target)
+    dataNext.msg = serviceFunc.getArrToSave(record0.msg, data.msg, 'add', data.target)
     // Role, add [].
-    dataNext.role = serviceFunc.getArrToSave(data.role, dataNext.role, 'add', data.target)
+    dataNext.role = serviceFunc.getArrToSave(record0.role, data.role, 'add', data.target)
     // Inception, add [].
-    dataNext.inception = serviceFunc.getArrToSave(data.inception, dataNext.inception, 'add', data.target)
+    dataNext.inception = serviceFunc.getArrToSave(record0.inception, data.inception, 'add', data.target)
     // SearchPhrase, add [].
-    dataNext.searchPhrase = serviceFunc.getArrToSave(data.searchPhrase, dataNext.searchPhrase, 'add', data.target)
+    dataNext.searchPhrase = serviceFunc.getArrToSave(record0.searchPhrase, data.searchPhrase, 'add', data.target)
     // SearchCategory, add [].
-    dataNext.searchCategory = serviceFunc.getArrToSave(data.searchCategory, dataNext.searchCategory, 'add', data.target)
+    dataNext.searchCategory = serviceFunc.getArrToSave(record0.searchCategory, data.searchCategory, 'add', data.target)
     // SearchMedia, add [].
-    dataNext.searchMedia = serviceFunc.getArrToSave(data.searchMedia, dataNext.searchMedia, 'add', data.target)
+    dataNext.searchMedia = serviceFunc.getArrToSave(record0.searchMedia, data.searchMedia, 'add', data.target)
     // CatalogCategory, add [].
-    dataNext.catalogCategory = serviceFunc.getArrToSave(data.catalogCategory, dataNext.catalogCategory, 'add', data.target)
+    dataNext.catalogCategory = serviceFunc.getArrToSave(record0.catalogCategory, data.catalogCategory, 'add', data.target)
     // UserPrifile, add [].
-    dataNext.userPrifile = serviceFunc.getArrToSave(data.userPrifile, dataNext.userPrifile, 'add', data.target)
+    dataNext.userPrifile = serviceFunc.getArrToSave(record0.userPrifile, data.userPrifile, 'add', data.target)
     // Email, add [].
-    dataNext.email = serviceFunc.getArrToSave(data.email, dataNext.email, 'add', data.target)
+    dataNext.email = serviceFunc.getArrToSave(record0.email, data.email, 'add', data.target)
 
-
-    // console.info('saveUserAnalytics [7]', { 'req.session.id': req.session.id, record, 'record.length': record.length, target, dataNext })
+    // console.info('saveUserAnalytics [7]', { 'dataNext': dataNext, 'data': data, 'record0': record0 })
 
     // First time startSession
-    if (req.session.id !== undefined
-      && record.length === 0
+    if (record.length === 0
       && target[0] === 'startSession'
       && target.length === 1
     ) {
       // console.info('startUserSession [7]', { query: req.query })
-      result = await insertPromise(dataNext)
+      result = await updatePromise(dataNext)
       stage = 'First time startSession'
       // console.info('startUserSession [8]', { result })
     }
     // Update user analytics
-    else if (
-      req.session.id !== undefined
-      && record.length > 0
+    else if (record.length > 0
       && target.length === 1
       && target[0] !== 'startSession'
     ) {
       stage = 'Update user analytics'
+      // console.info('Update user analytics [8]', { dataNext })
       result = await updatePromise(dataNext)
-      console.info('Update user analytics [9]', { result })
+      // console.info('Update user analytics [9]', { result })
       result = result || 'Ok'
     }
 
     client.close()
 
     // application/x-www-form-urlencoded
-    const recordJson = JSON.stringify({ stage, record, dataNext, result })
-    // console.info('saveUserAnalytics [10]', { recordJson })
+    const recordJson = JSON.stringify({ stage }) // , result, dataNext, record
+    
+    // console.info('saveUserAnalytics [10]', { recordJson, data, record })
     res.setHeader('Content-Type', 'text/plain')
-    res.setHeader('Access-Control-Allow-Origin', '*')
+    // const { hostname } = data
+    // res.setHeader('Access-Control-Allow-Origin', hostname)
+    res.setHeader('Access-Control-Allow-Credentials', true)
     return res.send(recordJson)
   })
 
