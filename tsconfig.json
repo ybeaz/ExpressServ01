@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "noImplicitAny": false,
+    "module": "esnext",
+    "target": "es5",
+    "jsx": "react",
+    "allowJs": true,
+    "sourceMap": true,
+    "lib": ["dom", "es2015", "es5", "es6"],
+    "typeRoots": [
+      "./node_modules/@types/"
+    ],
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "types": [
+      "node"
+    ],
+  },
+  "exclude": [
+    "./node_modules/**/*"
+  ],
+  "defaultSeverity": "warning",
+   "linterOptions": {
+     "exclude": [
+       "config/**/*.js",
+       "node_modules/**/*.ts"
+     ]
+   },
+   "awesomeTypescriptLoaderOptions": {
+    "errorsAsWarnings": true,
+    "useCache": true,
+  }
+}
