@@ -1,3 +1,8 @@
+// http://localhost:8081/hello_world/user/Roman/Cheskidov
+// http://localhost:8081/api/apiP2p?optGet=sus
+// http://nd.userto.com/hello_world/user/Roman/Cheskidov
+// http://nd.userto.com/api/apiP2p?optGet=sus
+
 
 const express = require('express')
 const methodOverride = require('method-override')
@@ -5,10 +10,12 @@ const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const favicon = require('favicon')
 const session = require('express-session')
+const uuidv4 = require('uuid/v4')
 
 const nocache = require('nocache')
 const path = require('path')
-const http = require('http')
+// const http = require('http')
+// const https = require('https')
 
 const { MongoClient } = require('mongodb')
 
@@ -17,11 +24,24 @@ const logging = require('./shared/logging')
 const getUserAnalytics = require('./controllers/getUserAnalytics')
 const saveUserAnalytics = require('./controllers/saveUserAnalytics')
 
+const environment = 'prod' //prod
 const { APP_PORT, APP_IP, APP_PATH } = process.env
-//const DB_CONNECTION_STRING = 'mongodb://c3550_mdb_sitewindows_com:YeMmoDacnibex39@mongo1.c3550.h2,mongo2.c3550.h2,mongo3.c3550.h2/c3550_mdb_sitewindows_com?replicaSet=MongoReplica'
-//const dbName = 'c3550_mdb_sitewindows_com'
-const DB_CONNECTION_STRING = 'mongodb://127.0.0.1:27017/db?gssapiServiceName=mongodb'
-const dbName = 'db'
+let appPort
+let DB_CONNECTION_STRING
+let dbName
+
+// Setting variables for dev mode
+if (APP_PORT === undefined) {
+  appPort = 8081
+  DB_CONNECTION_STRING = 'mongodb://127.0.0.1:27017/db?gssapiServiceName=mongodb'
+  dbName = 'db'
+}
+// Setting variables for prod mode
+else {
+  appPort = APP_PORT
+  DB_CONNECTION_STRING = 'mongodb://c3550_mdb_sitewindows_com:YeMmoDacnibex39@mongo1.c3550.h2,mongo2.c3550.h2,mongo3.c3550.h2/c3550_mdb_sitewindows_com?replicaSet=MongoReplica'
+  dbName = 'c3550_mdb_sitewindows_com'
+}
 
 const app = express()
 
@@ -35,17 +55,23 @@ app.use(logging.logErrors)
 app.use(logging.clientErrorHandler)
 app.use(logging.errorHandler)
 app.use(methodOverride())
-app.use(bodyParser.json()) // ???
 app.use(cookieParser())
 app.use(session({
   secret: 'keyboard abc',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false },
+  cookie: { secure: false, maxAge: 21600000 },
 }))
 app.use(express.static(path.join(__dirname, 'www')))
 app.use(nocache())
-
+// parse various different urlencoded
+app.use(bodyParser.urlencoded({ type: 'application/x-www-form-urlencoded', extended: true }))
+// parse various different custom JSON types as JSON
+app.use(bodyParser.json({ type: 'application/json' }))
+// parse some custom thing into a Buffer
+app.use(bodyParser.raw({ type: 'application/vnd.custom-type' }))
+// parse an HTML body as a string
+app.use(bodyParser.text({ type: 'text/*' }))
 /*
 // development only
 if (app.get('env') === 'development') {
@@ -59,7 +85,7 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS')
   res.header('Access-Control-Allow-Credentials', true)
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Methods, Credentials')
   next()
 })
 
@@ -74,9 +100,11 @@ app.all('*', (req, res, next) => {
 
 // Api url to get all rows for analytics
 app.post('/api/apiP2p', (req, res) => {
-  // console.log('app.get request [1]')
 
-  switch (req.query.optPost)
+  const bodyJson = JSON.parse(req.body)
+  // console.log('app.post [0]', { bodyJson, 'req.body.optPost': req.body.optPost, 'req.body': req.body })
+
+  switch (bodyJson.optPost)
   {
     // Save user visit actions 'SAVE_USER_VISIT_ACTIONS' saveUserVisitActions
     case 'suva':
@@ -86,14 +114,14 @@ app.post('/api/apiP2p', (req, res) => {
       break
 
     default: {
-      console.info('post unexpected optPost', req.query.optPost)
+      console.info('app.post unexpected optPost', req.body.optPost, ' ', req.body)
     }
   }
 })
 
 // Api url to get all rows for analytics
 app.get('/api/apiP2p', (req, res) => {
-  // console.log('app.get request [1]')
+  // console.log('app.get [0]', JSON.stringify(req.query))
 
   switch (req.query.optGet) {
 
@@ -112,7 +140,7 @@ app.get('/api/apiP2p', (req, res) => {
       break
 
     default: {
-      console.info('get unexpected optGet', req.query.optGet)
+      console.info('app.get unexpected optGet', req.query.optGet)
     }
   }
 
@@ -130,6 +158,11 @@ app.get('/hello_world/user/:first?/:second?', (req, res) => {
   const queryJson = JSON.stringify(req.query)
   const paramsJson = JSON.stringify(req.params)
 
+  if (req.cookies.anltSidRender === undefined) {
+    res.cookie('anltSidRender', uuidv4(), { httpOnly: false, domain: '', maxAge: 21600000 })
+  }
+  // res.cookie( 'key', 'value', { maxAge: 1000 * 60 * 10, httpOnly: false })
+
   // console.info('app.get', first, ' ', second, ' [params]', paramsJson, ' [query]', queryJson, ' [ip]', req.ip)
   const h1 = 'Hi ' + first + ' ' + second + '!'
   const p1 = 'This server uses a <a href="https://pugjs.org/api/getting-started.html" target="_blank">pug template</a> for the html output'
@@ -139,7 +172,12 @@ app.get('/hello_world/user/:first?/:second?', (req, res) => {
   // res.send('Hello World')
 })
 
-//const server = app.listen(APP_PORT, 57926, () => {
-const server = app.listen(8081, () => {
+console.log('index.js [10]', JSON.stringify({ appPort, APP_PORT, APP_IP, APP_PATH }))
+// const server = app.listen(APP_PORT, 57926, () => {
+// http.createServer(app).listen(appPort, () => { console.info('http') })
+// const options = {}
+// https.createServer(options, app).listen(appPort, () => { console.info('https') })
+
+const server = app.listen(appPort, () => {
   const { address: host, port } = server.address()
 })

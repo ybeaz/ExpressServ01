@@ -1,8 +1,10 @@
 
 const logger = (req, res, next) => {
+  /*
   console.info('logger', {
-    url: '//' + req.headers.host + req.originalUrl,
+    url: `//${req.headers.host}${req.originalUrl}`,
     query: req.query })
+  */
   next()
 }
 
