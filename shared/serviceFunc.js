@@ -63,6 +63,7 @@ const getArrToSave2 = (record, dataInp, caseOption, target) => {
   let dataNext
 
   if (caseOption === 'add') {
+    console.info('getArrToSave [0]', { record0, 'empty(record0)': empty(record0), dataInp0, 'empty(dataInp0)': empty(dataInp0), dataInp, record })
     if (empty(record0) === true && empty(dataInp0) === true) {
       dataNext = []
     }
@@ -74,11 +75,11 @@ const getArrToSave2 = (record, dataInp, caseOption, target) => {
     }
     else if (empty(record0) === false && empty(dataInp0) === false) {
       dataNext = array_merge(record, dataInp)
-      // console.info('getArrToSave [5]', { dataNext, dataInp, record })
+      console.info('getArrToSave [5]', { dataNext, dataInp, record })
       dataNext = array_unique(dataNext)
-      // console.info('getArrToSave [7]', { dataNext })
+      console.info('getArrToSave [7]', { dataNext })
       dataNext = array_filter(dataNext, 'strlen')
-      // console.info('getArrToSave [9]', { dataNext })
+      console.info('getArrToSave [9]', { dataNext })
     }
   }
 
@@ -99,8 +100,6 @@ const getArrToSave2 = (record, dataInp, caseOption, target) => {
   }
 
   else if (caseOption === 'new') {
-    // console.info('getArrToSave', { record0, 'empty(record0)': empty(record0), dataInp0, 'empty(dataInp0)': empty(dataInp0), dataInp, record })
-
     if (empty(record0) === true && empty(dataInp0) === true) {
       dataNext = []
     }
@@ -254,5 +253,6 @@ const getArrToSave = (record, dataInp, caseOption, target) => {
 }
 
 module.exports = {
+  getArrToSave2,
   getArrToSave,
 }

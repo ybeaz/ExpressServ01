@@ -5,6 +5,7 @@ const { MongoClient } = require('mongodb')
 const router = express.Router()
 const getUserAnalytics = require('../controllers/getUserAnalytics')
 const saveUserAnalytics = require('../controllers/saveUserAnalytics')
+const saveUserAnalytics2 = require('../controllers/saveUserAnalytics2')
 
 const { APP_PORT, APP_IP, APP_PATH } = process.env
 let DB_CONNECTION_STRING
@@ -32,7 +33,7 @@ router.post('/api/apiP2p/2.0', (req, res) => {
     // Save user analytics
     case 'sua':
       {
-        saveUserAnalytics(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
+        saveUserAnalytics2(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
       }
       break
 
@@ -60,7 +61,7 @@ router.get('/api/apiP2p/2.0', (req, res) => {
     case 'sus':
       {
         // console.log('app.get [5]', req.query)
-        saveUserAnalytics(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
+        saveUserAnalytics2(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
       }
       break
 
