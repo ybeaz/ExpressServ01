@@ -21,6 +21,56 @@ else {
   dbName = 'c3550_mdb_sitewindows_com'
 }
 
+// Api url to get all rows for analytics
+router.post('/api/apiP2p/2.0', (req, res) => {
+
+  const bodyJson = JSON.parse(req.body)
+  // console.log('app.post [0]', { bodyJson, 'req.body': req.body })
+
+  switch (bodyJson.optPost)
+  {
+    // Save user analytics
+    case 'sua':
+      {
+        saveUserAnalytics(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
+      }
+      break
+
+    default: {
+      console.info('app.post unexpected optPost', req.body.optPost, ' ', req.body)
+    }
+  }
+
+})
+
+// Api url to get all rows for analytics
+router.get('/api/apiP2p/2.0', (req, res) => {
+  // console.log('app.get [0]', { query: req.query })
+
+  switch (req.query.optGet) {
+
+    // Return report to developers and market analytics GET_USER_ANALYTICS_DATA -> getUserAnalytics
+    case 'guad':
+      {
+        getUserAnalytics(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
+      }
+      break
+
+    // Save user visit actions START_USER_SESSION -> startUserSession
+    case 'sus':
+      {
+        // console.log('app.get [5]', req.query)
+        saveUserAnalytics(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
+      }
+      break
+
+    default: {
+      console.info('app.get unexpected optGet', req.query.optGet)
+    }
+  }
+
+  //res.render('Dev mode')
+})
 
 // Api url to get all rows for analytics
 router.post('/api/apiP2p', (req, res) => {
@@ -72,7 +122,7 @@ router.get('/api/apiP2p', (req, res) => {
 })
 
 // Test URL for Hello World
-router.get('/hello_world/user/:first?/:second?', (req, res) => {
+router.get('/user/:first?/:second?', (req, res) => {
 
   //db.webAnalytics.find({'PHPSESSID' : '4855b16f7fff75719d32b52e0ae7a097'}, { _id: 0 }).pretty()
 

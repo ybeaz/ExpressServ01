@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "opn http://localhost:8081/graphql & opn http://localhost:8082/user/John/Smith & node index.js",
+    "start": "opn http://localhost:8081/user/John/Smith & node index.js",
+    "dev": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

@@ -15,7 +15,7 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
       return new Promise((resolve, reject) => {
 
         db.collection('webAnalytics')
-          .find({ utAnltSid: sid }, { _id: 0 })
+          .find({ 'PHPSESSID': sid }, { _id: 0 })
           // .sort({ _id: -1 })
           .toArray((errFind, resFind) => {
             errFind
@@ -71,9 +71,8 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
     let record0 = []
     if (queryToProcess && JSON.stringify(queryToProcess) !== '{}') {
       data = queryToProcess
-      console.info('saveUserAnalytics get [2]', data)
       utAnltSid = data.utAnltSid
-      target = data.target
+      target = JSON.parse(data.target)
     }
     else if (bodyToProcess && bodyToProcess !== '{}') {
       data = JSON.parse(bodyToProcess)
@@ -91,18 +90,19 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
 
     // console.info('saveUserAnalytics [5]', { target, data })
 
-    let dataNext = {}
+    let dataNext = {
+      PHPSESSID: utAnltSid,
+    }
 
     // Case sessionStart
     if (record.length === 0) {
 
       const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-      dataNext = { initData: [{ ip }] }
-
       dataNext = {
         start: moment().format('YYYY/MM/DD HH:mm:ss'),
-        ...data,
+        ip,
         ...dataNext,
+        ...data,
         finish: moment().format('YYYY/MM/DD HH:mm:ss'),
       }
     }
@@ -120,28 +120,48 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
 
     }
 
-    delete dataNext.optGet
-    delete dataNext.jsonp
-
     // console.info('saveUserAnalytics [6]', { record, data, dataNext })
 
     // Transform data to array
     // Target, max [].
     dataNext.target = serviceFunc.getArrToSave(record0.target, data.target, 'max', data.target)
 
+    // ActionLog, new [].
+    dataNext.actionLog = serviceFunc.getArrToSave(record0.actionLog, data.actionLog, 'new', data.target)
+
     // Topic, add [].
     dataNext.topic = serviceFunc.getArrToSave(record0.topic, data.topic, 'add', data.target)
 
-    console.info('saveUserAnalytics [7]', { 'dataNext.target': dataNext.target, 'dataNext': dataNext, 'data': data, 'record': record })
+    // Msg, add [].
+    dataNext.msg = serviceFunc.getArrToSave(record0.msg, data.msg, 'add', data.target)
+    // Role, add [].
+    dataNext.role = serviceFunc.getArrToSave(record0.role, data.role, 'add', data.target)
+    // Inception, add [].
+    dataNext.inception = serviceFunc.getArrToSave(record0.inception, data.inception, 'add', data.target)
+    // SearchPhrase, add [].
+    dataNext.searchPhrase = serviceFunc.getArrToSave(record0.searchPhrase, data.searchPhrase, 'add', data.target)
+    // SearchCategory, add [].
+    dataNext.searchCategory = serviceFunc.getArrToSave(record0.searchCategory, data.searchCategory, 'add', data.target)
+    // SearchMedia, add [].
+    dataNext.searchMedia = serviceFunc.getArrToSave(record0.searchMedia, data.searchMedia, 'add', data.target)
+    // CatalogCategory, add [].
+    dataNext.catalogCategory = serviceFunc.getArrToSave(record0.catalogCategory, data.catalogCategory, 'add', data.target)
+    // UserPrifile, add [].
+    dataNext.userPrifile = serviceFunc.getArrToSave(record0.userPrifile, data.userPrifile, 'add', data.target)
+    // Email, add [].
+    dataNext.email = serviceFunc.getArrToSave(record0.email, data.email, 'add', data.target)
+
+    // console.info('saveUserAnalytics [7]', { 'dataNext': dataNext, 'data': data, 'record0': record0 })
 
     // First time startSession
     if (record.length === 0
-      && dataNext.target[0].name === 'start'
+      && target[0] === 'startSession'
+      && target.length === 1
     ) {
-      console.info('startUserSession [8]', { dataNext, query: req.query })
+      // console.info('startUserSession [7]', { query: req.query })
       result = await updatePromise(dataNext)
       stage = 'First time startSession'
-      console.info('startUserSession [9]', { result })
+      // console.info('startUserSession [8]', { result })
     }
     // Update user analytics
     else if (record.length > 0

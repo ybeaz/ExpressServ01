@@ -55,6 +55,105 @@ const array_filter = (data, param) => {
   return data.filter(item => item.length > 0)
 }
 
+const getArrToSave2 = (record, dataInp, caseOption, target) => {
+
+  const record0 = record && record[0] ? record[0] : ''
+  const dataInp0 = dataInp && dataInp[0] ? dataInp[0] : ''
+  const target0 = target && target[0] ? target[0] : ''
+  let dataNext
+
+  if (caseOption === 'add') {
+    if (empty(record0) === true && empty(dataInp0) === true) {
+      dataNext = []
+    }
+    else if (empty(record0) === false && empty(dataInp0) === true) {
+      dataNext = record
+    }
+    else if (empty(record0) === true && empty(dataInp0) === false) {
+      dataNext = dataInp
+    }
+    else if (empty(record0) === false && empty(dataInp0) === false) {
+      dataNext = array_merge(record, dataInp)
+      // console.info('getArrToSave [5]', { dataNext, dataInp, record })
+      dataNext = array_unique(dataNext)
+      // console.info('getArrToSave [7]', { dataNext })
+      dataNext = array_filter(dataNext, 'strlen')
+      // console.info('getArrToSave [9]', { dataNext })
+    }
+  }
+
+  if (caseOption === 'addAll') {
+    if (empty(record0) === true && empty(dataInp0) === true) {
+      dataNext = []
+    }
+    else if (empty(record0) === false && empty(dataInp0) === true) {
+      dataNext = record
+    }
+    else if (empty(record0) === true && empty(dataInp0) === false) {
+      dataNext = dataInp
+    }
+    else if (empty(record0) === false && empty(dataInp0) === false) {
+      dataNext = array_merge(record, dataInp)
+      dataNext = array_filter(dataNext, 'strlen')
+    }
+  }
+
+  else if (caseOption === 'new') {
+    // console.info('getArrToSave', { record0, 'empty(record0)': empty(record0), dataInp0, 'empty(dataInp0)': empty(dataInp0), dataInp, record })
+
+    if (empty(record0) === true && empty(dataInp0) === true) {
+      dataNext = []
+    }
+    else if (empty(record0) === false && empty(dataInp0) === true) {
+      dataNext = record
+    }
+    else if (empty(record0) === true && empty(dataInp0) === false) {
+      dataNext = dataInp
+    }
+    else if (empty(record0) === false && empty(dataInp0) === false
+        && target0 === 'startSession'
+    ) {
+      dataNext = array_merge(dataInp, record)
+    }
+    else if (empty(record0) === false && empty(dataInp0) === false
+        && target0 !== 'startSession'
+    ) {
+      dataNext = dataInp
+    }
+  }
+
+  else if (caseOption === 'max') {
+
+    if (dataInp0 === 'registration02'
+    ) {
+      dataNext = dataInp
+    }
+    else if (dataInp0 === 'registration01'
+        && record0 !== 'registration02'
+    ) {
+      dataNext = dataInp
+    }
+    else if (record0 === 'registration02'
+    ) {
+      dataNext = record
+    }
+    else if (empty(record0) === true && empty(dataInp0) === true) {
+      dataNext = []
+    }
+    else if (empty(record0) === true && empty(dataInp0) === false) {
+      dataNext = dataInp
+    }
+    else if (empty(record0) === false && empty(dataInp0) === true) {
+      dataNext = record0
+    }
+    else if (empty(record0) === false && empty(dataInp0) === false) {
+      dataNext = dataInp
+    }
+  }
+
+  return dataNext
+}
+
 const getArrToSave = (record, dataInp, caseOption, target) => {
 
   const record0 = record && record[0] ? record[0] : ''

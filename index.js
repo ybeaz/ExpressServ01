@@ -58,7 +58,6 @@ app.use(session({
   saveUninitialized: true,
   cookie: { secure: false, maxAge: 21600000 },
 }))
-app.use(router)
 app.use(express.static(path.join(__dirname, 'www')))
 app.use(nocache())
 // parse various different urlencoded
@@ -69,6 +68,7 @@ app.use(bodyParser.json({ type: 'application/json' }))
 app.use(bodyParser.raw({ type: 'application/vnd.custom-type' }))
 // parse an HTML body as a string
 app.use(bodyParser.text({ type: 'text/*' }))
+app.use(router)
 /*
 // development only
 if (app.get('env') === 'development') {
