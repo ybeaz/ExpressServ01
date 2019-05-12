@@ -104,6 +104,7 @@ const saveUserAnalytics2 = (req, res, MongoClient, dbName, DB_CONNECTION_STRING)
         ...data,
         finish: moment().format('YYYY/MM/DD HH:mm:ss'),
       }
+      // console.info('saveUserAnalytics [5]', { target, data })
       dataNext.initData[0].ip = ip
     }
     // Case sessionUpdate
@@ -123,18 +124,18 @@ const saveUserAnalytics2 = (req, res, MongoClient, dbName, DB_CONNECTION_STRING)
     delete dataNext.optGet
     delete dataNext.jsonp
 
-    console.info('saveUserAnalytics [6]', { record, data, dataNext })
+    // console.info('saveUserAnalytics [6]', { record, data, dataNext })
 
-    // Transform data to array
-    // Target, max [].
-    // dataNext.target = serviceFunc.getArrToSave2(record0.target, data.target, 'max', data.target)
-
-    // Topic, add [].
-    dataNext.topics = serviceFunc.getArrToSave2(record0.topics, data.topics, 'add', data.target)
-
-    // Actions, add [].
-    dataNext.actions = serviceFunc.getArrToSave2(record0.actions, data.actions, 'add', data.target)
-
+    // Block to process fields
+    const fieldsToSave = [
+      { name: 'topics', mode: 'add', prop: '' },
+      { name: 'eventData', mode: 'add', prop: 'name' },
+      { name: 'target', mode: 'max', prop: '' },
+    ]
+    fieldsToSave.forEach(item => {
+      const { name, mode, prop } = item
+      dataNext[name] = serviceFunc.getArrToSave2(record0[name], data[name], mode, prop)
+    })
 
     // console.info('saveUserAnalytics [7]', { 'dataNext.target': dataNext.target, 'dataNext': dataNext, 'data': data, 'record': record })
 
