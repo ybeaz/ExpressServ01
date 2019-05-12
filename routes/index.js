@@ -4,12 +4,14 @@ const { MongoClient } = require('mongodb')
 
 const router = express.Router()
 const getUserAnalytics = require('../controllers/getUserAnalytics')
+const getUserAnalytics2 = require('../controllers/getUserAnalytics2')
 const saveUserAnalytics = require('../controllers/saveUserAnalytics')
 const saveUserAnalytics2 = require('../controllers/saveUserAnalytics2')
 
 const { APP_PORT, APP_IP, APP_PATH } = process.env
 let DB_CONNECTION_STRING
 let dbName
+const collection = 'webAnalytics2'
 
 // Setting variables for dev mode
 if (APP_PORT === undefined) {
@@ -21,6 +23,7 @@ else {
   DB_CONNECTION_STRING = 'mongodb://c3550_mdb_sitewindows_com:YeMmoDacnibex39@mongo1.c3550.h2,mongo2.c3550.h2,mongo3.c3550.h2/c3550_mdb_sitewindows_com?replicaSet=MongoReplica'
   dbName = 'c3550_mdb_sitewindows_com'
 }
+const dbAccessData = { MongoClient, dbName, DB_CONNECTION_STRING, collection }
 
 // Api url to get all rows for analytics
 router.post('/api/apiP2p/2.0', (req, res) => {
@@ -33,7 +36,7 @@ router.post('/api/apiP2p/2.0', (req, res) => {
     // Save user analytics
     case 'sua':
       {
-        saveUserAnalytics2(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
+        saveUserAnalytics2(req, res, dbAccessData)
       }
       break
 
@@ -53,7 +56,7 @@ router.get('/api/apiP2p/2.0', (req, res) => {
     // Return report to developers and market analytics GET_USER_ANALYTICS_DATA -> getUserAnalytics
     case 'guad':
       {
-        getUserAnalytics(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
+        getUserAnalytics2(req, res, dbAccessData)
       }
       break
 
@@ -61,7 +64,7 @@ router.get('/api/apiP2p/2.0', (req, res) => {
     case 'sus':
       {
         // console.log('app.get [5]', req.query)
-        saveUserAnalytics2(req, res, MongoClient, dbName, DB_CONNECTION_STRING)
+        saveUserAnalytics2(req, res, dbAccessData)
       }
       break
 

@@ -1,8 +1,9 @@
 const moment = require('moment')
 const serviceFunc = require('../shared/serviceFunc')
 
-const saveUserAnalytics2 = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) => {
+const saveUserAnalytics2 = (req, res, dbAccessData) => {
 
+  const { MongoClient, dbName, DB_CONNECTION_STRING, collection } = dbAccessData
   let stage = 'inception'
   let result
 
@@ -13,7 +14,7 @@ const saveUserAnalytics2 = (req, res, MongoClient, dbName, DB_CONNECTION_STRING)
     const findPromise = sid => {
       return new Promise((resolve, reject) => {
 
-        db.collection('webAnalytics')
+        db.collection(collection)
           .find({ utAnltSid: sid }, { _id: 0 })
           // .sort({ _id: -1 })
           .toArray((errFind, resFind) => {
@@ -26,7 +27,7 @@ const saveUserAnalytics2 = (req, res, MongoClient, dbName, DB_CONNECTION_STRING)
 
     const insertPromise = query => {
       return new Promise((resolve, reject) => {
-        db.collection('webAnalytics')
+        db.collection(collection)
           .insertOne(
             { ...query },
             (errInsert, resInsert) => {
@@ -43,7 +44,7 @@ const saveUserAnalytics2 = (req, res, MongoClient, dbName, DB_CONNECTION_STRING)
     const updatePromise = query => {
       return new Promise((resolve, reject) => {
         try {
-          db.collection('webAnalytics')
+          db.collection(collection)
             .updateOne(
               { utAnltSid: query.utAnltSid },
               { $set: { ...query } },
