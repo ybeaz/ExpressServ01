@@ -1,7 +1,7 @@
 const moment = require('moment')
 const serviceFunc = require('../shared/serviceFunc')
 
-const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) => {
+const saveUserAnalytics2 = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) => {
 
   let stage = 'inception'
   let result
@@ -14,7 +14,7 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
       return new Promise((resolve, reject) => {
 
         db.collection('webAnalytics')
-          .find({ 'PHPSESSID': sid }, { _id: 0 })
+          .find({ utAnltSid: sid }, { _id: 0 })
           // .sort({ _id: -1 })
           .toArray((errFind, resFind) => {
             errFind
@@ -45,7 +45,7 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
         try {
           db.collection('webAnalytics')
             .updateOne(
-              { 'PHPSESSID': query.PHPSESSID }, 
+              { utAnltSid: query.utAnltSid },
               { $set: { ...query } },
               { upsert: true },
               (errUpdate, resUpdate) => {
@@ -67,11 +67,12 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
     let data
     let target
     let utAnltSid
-    let record0 = []
+    let record0 = {}
     if (queryToProcess && JSON.stringify(queryToProcess) !== '{}') {
       data = queryToProcess
+      // console.info('saveUserAnalytics get [2]', data)
       utAnltSid = data.utAnltSid
-      target = JSON.parse(data.target)
+      target = data.target
     }
     else if (bodyToProcess && bodyToProcess !== '{}') {
       data = JSON.parse(bodyToProcess)
@@ -89,21 +90,22 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
 
     // console.info('saveUserAnalytics [5]', { target, data })
 
-    let dataNext = {
-      PHPSESSID: utAnltSid,
-    }
+    let dataNext = {}
 
     // Case sessionStart
     if (record.length === 0) {
 
       const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+      // dataNext = { initData: [{ ip }] }
+
       dataNext = {
         start: moment().format('YYYY/MM/DD HH:mm:ss'),
-        ip,
         ...dataNext,
         ...data,
         finish: moment().format('YYYY/MM/DD HH:mm:ss'),
       }
+      // console.info('saveUserAnalytics [5]', { target, data })
+      dataNext.initData[0].ip = ip
     }
     // Case sessionUpdate
     else if (record.length > 0) {
@@ -119,48 +121,32 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
 
     }
 
+    delete dataNext.optGet
+    delete dataNext.jsonp
+
     // console.info('saveUserAnalytics [6]', { record, data, dataNext })
 
-    // Transform data to array
-    // Target, max [].
-    dataNext.target = serviceFunc.getArrToSave(record0.target, data.target, 'max', data.target)
+    // Block to process fields
+    const fieldsToSave = [
+      { name: 'topics', mode: 'add', prop: '' },
+      { name: 'eventData', mode: 'add', prop: 'name' },
+      { name: 'target', mode: 'max', prop: '' },
+    ]
+    fieldsToSave.forEach(item => {
+      const { name, mode, prop } = item
+      dataNext[name] = serviceFunc.getArrToSave2(record0[name], data[name], mode, prop)
+    })
 
-    // ActionLog, new [].
-    dataNext.actionLog = serviceFunc.getArrToSave(record0.actionLog, data.actionLog, 'new', data.target)
-
-    // Topic, add [].
-    dataNext.topic = serviceFunc.getArrToSave(record0.topic, data.topic, 'add', data.target)
-
-    // Msg, add [].
-    dataNext.msg = serviceFunc.getArrToSave(record0.msg, data.msg, 'add', data.target)
-    // Role, add [].
-    dataNext.role = serviceFunc.getArrToSave(record0.role, data.role, 'add', data.target)
-    // Inception, add [].
-    dataNext.inception = serviceFunc.getArrToSave(record0.inception, data.inception, 'add', data.target)
-    // SearchPhrase, add [].
-    dataNext.searchPhrase = serviceFunc.getArrToSave(record0.searchPhrase, data.searchPhrase, 'add', data.target)
-    // SearchCategory, add [].
-    dataNext.searchCategory = serviceFunc.getArrToSave(record0.searchCategory, data.searchCategory, 'add', data.target)
-    // SearchMedia, add [].
-    dataNext.searchMedia = serviceFunc.getArrToSave(record0.searchMedia, data.searchMedia, 'add', data.target)
-    // CatalogCategory, add [].
-    dataNext.catalogCategory = serviceFunc.getArrToSave(record0.catalogCategory, data.catalogCategory, 'add', data.target)
-    // UserPrifile, add [].
-    dataNext.userPrifile = serviceFunc.getArrToSave(record0.userPrifile, data.userPrifile, 'add', data.target)
-    // Email, add [].
-    dataNext.email = serviceFunc.getArrToSave(record0.email, data.email, 'add', data.target)
-
-    // console.info('saveUserAnalytics [7]', { 'dataNext': dataNext, 'data': data, 'record0': record0 })
+    // console.info('saveUserAnalytics [7]', { 'dataNext.target': dataNext.target, 'dataNext': dataNext, 'data': data, 'record': record })
 
     // First time startSession
     if (record.length === 0
-      && target[0] === 'startSession'
-      && target.length === 1
+      && dataNext.target[0].name === 'start'
     ) {
-      // console.info('startUserSession [7]', { query: req.query })
+      // console.info('startUserSession [8]', { dataNext, query: req.query })
       result = await updatePromise(dataNext)
       stage = 'First time startSession'
-      // console.info('startUserSession [8]', { result })
+      // console.info('startUserSession [9]', { result })
     }
     // Update user analytics
     else if (record.length > 0
@@ -196,4 +182,4 @@ const saveUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) 
   */
 }
 
-module.exports = saveUserAnalytics
+module.exports = saveUserAnalytics2
