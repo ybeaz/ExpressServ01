@@ -1,8 +1,3 @@
-// http://localhost:8081/hello_world/user/Roman/Cheskidov
-// http://localhost:8081/api/apiP2p?optGet=sus
-// http://nd.userto.com/hello_world/user/Roman/Cheskidov
-// http://nd.userto.com/api/apiP2p?optGet=sus
-
 
 const express = require('express')
 const cors = require('cors')
