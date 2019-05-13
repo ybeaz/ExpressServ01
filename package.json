@@ -4,13 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "opn http://localhost:8081/user/John/Smith & node index.js",
-    "dev": "node index.js",
+    "start": "opn http://localhost:8081/user/John/Smith & ts-node-dev --respawn --transpileOnly ./src/index.ts",
+    "build": "tsc && node ./dist/index.js",
+    "dev": "ts-node-dev --respawn --transpileOnly ./src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/express": "^4.16.1",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.4",
     "cors": "^2.8.5",
@@ -24,9 +26,11 @@
     "multer": "^1.4.1",
     "nocache": "^2.0.0",
     "pug": "^2.0.3",
+    "ts-node-dev": "^1.0.0-pre.39",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "opn-cli": "^4.1.0"
+    "opn-cli": "^4.1.0",
+    "typescript": "^3.4.5"
   }
 }
