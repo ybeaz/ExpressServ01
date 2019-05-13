@@ -13,9 +13,15 @@ const getUserAnalytics = (req, res, dbAccessData) => {
       .toArray(
         (errFind, result) => {
           if (errFind) throw errFind
-          const resultJson = JSON.stringify(result)
+          const resultNext = []
+          result.forEach(item => {
+            const itemNext = item
+            delete itemNext['_id']
+            resultNext.push(itemNext)
+          })
+          const resultJson = JSON.stringify(resultNext)
           // https://stackoverflow.com/questions/19696240/proper-way-to-return-json-using-node-or-express
-          console.log('find:', JSON.stringify(result[0]))
+          console.log('find:', result[0])
           db.close()
           res.setHeader('Content-Type', 'application/x-www-form-urlencoded')
           return res.end(resultJson)
