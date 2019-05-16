@@ -7,6 +7,7 @@
     "start": "opn http://localhost:8081/user/John/Smith & ts-node-dev --respawn --transpileOnly ./src/index.ts",
     "build": "tsc && node ./dist/index.js",
     "dev": "ts-node-dev --respawn --transpileOnly ./src/index.ts",
+    "tsc": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

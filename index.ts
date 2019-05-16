@@ -11,9 +11,9 @@ const path = require('path')
 // const http = require('http')
 // const https = require('https') 
 
-const logging = require('./shared/logging')
+const logging = require('./src/shared/logging')
 
-const router = require('./routes/index')
+const router = require('./src/routes/index')
 
 const { APP_PORT, APP_IP, APP_PATH } = process.env
 let appPort
@@ -77,6 +77,4 @@ console.log('index.js [10]', JSON.stringify({ appPort, APP_PORT, APP_IP, APP_PAT
 // const options = {}
 // https.createServer(options, app).listen(appPort, () => { console.info('https') })
 
-const server = app.listen(appPort, () => {
-  const { address: host, port } = server.address()
-})
+const server = app.listen(appPort, () => {})
