@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "opn http://localhost:8081/user/John/Smith & ts-node-dev --respawn --transpileOnly ./src/index.ts",
+    "start": "opn http://localhost:8081/user/John/Smith & ts-node-dev --respawn --transpileOnly ./index.ts",
     "dev": "ts-node-dev --respawn --transpileOnly ./index.ts",
     "templatescopy": "copyfiles ./src/**/*.pug ./dist",
     "build": "tsc && npm run templatescopy && node ./dist/index.js",
