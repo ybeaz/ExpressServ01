@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "opn http://localhost:8081/user/John/Smith & ts-node-dev --respawn --transpileOnly ./src/index.ts",
-    "build": "tsc && node ./dist/index.js",
-    "dev": "ts-node-dev --respawn --transpileOnly ./src/index.ts",
+    "dev": "ts-node-dev --respawn --transpileOnly ./index.ts",
+    "templatescopy": "copyfiles ./src/**/*.pug ./dist",
+    "build": "tsc && npm run templatescopy && node ./dist/index.js",
     "tsc": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -31,6 +32,7 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
+    "copyfiles": "^2.1.0",
     "opn-cli": "^4.1.0",
     "typescript": "^3.4.5"
   }

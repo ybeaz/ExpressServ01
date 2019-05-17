@@ -61,6 +61,7 @@
   },
   "include": [
     "./src/**/*",
+    "./src/views/**/*",
     "./index.ts"
   ], 
   "exclude": [
@@ -72,5 +73,5 @@
       "config/**/*.js",
       "node_modules/**/*",
     ]
-  },
+  }
 }

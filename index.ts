@@ -31,7 +31,7 @@ const app = express()
 
 // all environments
 // app.set('port', process.env.PORT || 3000);
-app.set('views', path.join(__dirname, 'views'))
+app.set('views', path.join(__dirname, '/src/views'))
 app.set('view engine', 'pug')
 
 /**
@@ -53,7 +53,7 @@ app.use(session({
   saveUninitialized: true,
   cookie: { secure: false, maxAge: 21600000 },
 }))
-app.use(express.static(path.join(__dirname, 'www')))
+app.use(express.static(path.join(__dirname, '')))
 app.use(nocache())
 // parse various different urlencoded
 app.use(bodyParser.urlencoded({ type: 'application/x-www-form-urlencoded', extended: true }))
