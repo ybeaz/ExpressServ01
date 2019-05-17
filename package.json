@@ -32,7 +32,6 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "copyfiles": "^2.1.0",
     "opn-cli": "^4.1.0",
     "typescript": "^3.4.5"
   }
