@@ -21,7 +21,7 @@ const getUserAnalytics = (req, res, dbAccessData) => {
           })
           const resultJson = JSON.stringify(resultNext)
           // https://stackoverflow.com/questions/19696240/proper-way-to-return-json-using-node-or-express
-          console.log('find:', result[0])
+          console.log('getUserAnalytics->find:', result[0])
           db.close()
           res.setHeader('Content-Type', 'application/x-www-form-urlencoded')
           return res.end(resultJson)

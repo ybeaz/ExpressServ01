@@ -20,8 +20,12 @@ if (APP_PORT === undefined) {
 }
 // Setting variables for prod mode
 else {
-  DB_CONNECTION_STRING = 'mongodb://c3550_mdb_sitewindows_com:YeMmoDacnibex39@mongo1.c3550.h2,mongo2.c3550.h2,mongo3.c3550.h2/c3550_mdb_sitewindows_com?replicaSet=MongoReplica'
-  dbName = 'c3550_mdb_sitewindows_com'
+  // Connection string to mdb.sitewindows.com -> mongoDB
+  // DB_CONNECTION_STRING = 'mongodb://c3550_mdb_sitewindows_com:YeMmoDacnibex39@mongo1.c3550.h2,mongo2.c3550.h2,mongo3.c3550.h2/c3550_mdb_sitewindows_com?replicaSet=MongoReplica'
+
+  // Conenction string to nd.userto.com -> mongoDB
+  DB_CONNECTION_STRING = 'mongodb://mongo1.c3550.h2:27017,mongo2.c3550.h2:27017,mongo3.c3550.h2:27017/c3550_nd_userto_com?gssapiServiceName=mongodb&replicaSet=MongoReplica'
+  dbName = 'c3550_nd_userto_com'
 }
 const dbAccessData = { MongoClient, dbName, DB_CONNECTION_STRING, collection }
 
@@ -125,7 +129,7 @@ router.get('/api/apiP2p', (req, res) => {
   //res.render('Dev mode')
 })
 
-// Test URL for Hello World
+// Test URL for test
 router.get('/user/:first?/:second?', (req, res) => {
 
   //db.webAnalytics.find({'PHPSESSID' : '4855b16f7fff75719d32b52e0ae7a097'}, { _id: 0 }).pretty()
@@ -146,7 +150,7 @@ router.get('/user/:first?/:second?', (req, res) => {
   const p1 = 'This server uses a <a href="https://pugjs.org/api/getting-started.html" target="_blank">pug template</a> for the html output'
   const p2 = 'This sever supports API get requests with query parameters ' + queryJson
   const f1 = 'For support, please, call +1 650 7 410014'
-  res.render('hello_world', { title: 'Hey', h1, p1, p2, f1 })
+  res.render('test', { title: 'Hey', h1, p1, p2, f1 })
   // res.send('Hello World')
 })
 

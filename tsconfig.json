@@ -61,6 +61,7 @@
   },
   "include": [
     "./src/**/*",
+    "./src/views/**/*",
     "./index.ts"
   ], 
   "exclude": [
