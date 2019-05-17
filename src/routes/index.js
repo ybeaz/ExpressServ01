@@ -24,7 +24,7 @@ else {
   // DB_CONNECTION_STRING = 'mongodb://c3550_mdb_sitewindows_com:YeMmoDacnibex39@mongo1.c3550.h2,mongo2.c3550.h2,mongo3.c3550.h2/c3550_mdb_sitewindows_com?replicaSet=MongoReplica'
 
   // Conenction string to nd.userto.com -> mongoDB
-  DB_CONNECTION_STRING = 'mongodb://mongo1.c3550.h2:27017,mongo2.c3550.h2:27017,mongo3.c3550.h2:27017/c3550_nd_userto_com?gssapiServiceName=mongodb&replicaSet=MongoReplica'
+  DB_CONNECTION_STRING = 'mongodb://c3550_nd_userto_com:JaBdoDifgowun32@mongo1.c3550.h2,mongo2.c3550.h2,mongo3.c3550.h2/c3550_nd_userto_com?replicaSet=MongoReplica'
   dbName = 'c3550_nd_userto_com'
 }
 const dbAccessData = { MongoClient, dbName, DB_CONNECTION_STRING, collection }

@@ -13,7 +13,7 @@ const getUserAnalytics = (req, res, MongoClient, dbName, DB_CONNECTION_STRING) =
           if (errFind) throw errFind
           const resultJson = JSON.stringify(result)
           // https://stackoverflow.com/questions/19696240/proper-way-to-return-json-using-node-or-express
-          console.log('find:', JSON.stringify(result[0]))
+          // console.log('find:', JSON.stringify(result[0]))
           db.close()
           res.setHeader('Content-Type', 'application/x-www-form-urlencoded')
           return res.end(resultJson)
