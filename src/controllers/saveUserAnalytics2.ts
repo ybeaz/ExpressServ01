@@ -1,23 +1,26 @@
 const moment = require('moment')
 const serviceFunc = require('../shared/serviceFunc')
+import * as Interfaces from '../shared/interfaces'
 
-const saveUserAnalytics2 = (req, res, dbAccessData) => {
+const saveUserAnalytics2 = async (
+  req: Interfaces.ExpressRequestCustom, res: Interfaces.ExpressResponseCustom,
+  dbAccessData: Interfaces.DbAccessData) => {
 
   const { MongoClient, dbName, DB_CONNECTION_STRING, collection } = dbAccessData
   let stage = 'inception'
   let result
 
-  MongoClient.connect(DB_CONNECTION_STRING, { useNewUrlParser: true }, async (err, client) => {
+  MongoClient.connect(DB_CONNECTION_STRING, async (err, client) => {
     if (err) throw err
     const db = client.db(dbName)
 
-    const findPromise = sid => {
+    const findPromise = (sid: string): any => {
       return new Promise((resolve, reject) => {
 
         db.collection(collection)
-          .find({ utAnltSid: sid }, { _id: 0 })
+          .find({ utAnltSid: sid }, { projection: { _id: 0 }})
           // .sort({ _id: -1 })
-          .toArray((errFind, resFind) => {
+          .toArray((errFind: any, resFind: any[]): any => {
             errFind
               ? reject(errFind)
               : resolve(resFind)
@@ -25,7 +28,7 @@ const saveUserAnalytics2 = (req, res, dbAccessData) => {
       })
     }
 
-    const insertPromise = query => {
+    const insertPromise = (query: any) => {
       return new Promise((resolve, reject) => {
         db.collection(collection)
           .insertOne(
@@ -41,7 +44,7 @@ const saveUserAnalytics2 = (req, res, dbAccessData) => {
       })
     }
 
-    const updatePromise = query => {
+    const updatePromise = (query: any) => {
       return new Promise((resolve, reject) => {
         try {
           db.collection(collection)
@@ -65,10 +68,10 @@ const saveUserAnalytics2 = (req, res, dbAccessData) => {
 
     const { query: queryToProcess, body: bodyToProcess } = req
 
-    let data
-    let target
-    let utAnltSid
-    let record0 = {}
+    let data: any
+    let target: any[] = []
+    let utAnltSid: string = ''
+    let record0: any = {}
     if (queryToProcess && JSON.stringify(queryToProcess) !== '{}') {
       data = queryToProcess
       // console.info('saveUserAnalytics get [2]', data)
@@ -91,13 +94,24 @@ const saveUserAnalytics2 = (req, res, dbAccessData) => {
 
     // console.info('saveUserAnalytics [5]', { target, data })
 
-    let dataNext = {}
+    let dataNext: Interfaces.DataAnalytics = {
+      initData: [{ ip: '' }],
+      topics: [],
+      target: [],
+    }
 
     // Case sessionStart
     if (record.length === 0) {
 
-      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-      // dataNext = { initData: [{ ip }] }
+      let ip: string = ''
+      if (req && req.headers !== undefined
+        && req.headers['x-forwarded-for'] !== undefined) {
+        ip = req.headers['x-forwarded-for']
+      }
+      else if (req !== undefined  && req.connection !== undefined
+        && req.connection.remoteAddress !== undefined) {
+        ip = req.connection.remoteAddress
+      }
 
       dataNext = {
         start: moment().format('YYYY/MM/DD HH:mm:ss'),
@@ -106,7 +120,9 @@ const saveUserAnalytics2 = (req, res, dbAccessData) => {
         finish: moment().format('YYYY/MM/DD HH:mm:ss'),
       }
       // console.info('saveUserAnalytics [5]', { target, data })
-      dataNext.initData[0].ip = ip
+      if (dataNext.initData) {
+        dataNext.initData[0].ip = ip
+      }
     }
     // Case sessionUpdate
     else if (record.length > 0) {
@@ -142,6 +158,7 @@ const saveUserAnalytics2 = (req, res, dbAccessData) => {
 
     // First time startSession
     if (record.length === 0
+      && dataNext.target
       && dataNext.target[0].name === 'start'
     ) {
       // console.info('startUserSession [8]', { dataNext, query: req.query })
@@ -167,10 +184,10 @@ const saveUserAnalytics2 = (req, res, dbAccessData) => {
     const recordJson = JSON.stringify({ stage }) // , result, dataNext, record
     
     // console.info('saveUserAnalytics [10]', { recordJson, data, record })
-    res.setHeader('Content-Type', 'text/plain')
+    res.set('Content-Type', 'text/plain')
     // const { hostname } = data
     // res.setHeader('Access-Control-Allow-Origin', hostname)
-    res.setHeader('Access-Control-Allow-Credentials', true)
+    res.set('Access-Control-Allow-Credentials', true)
     return res.send(recordJson)
   })
 

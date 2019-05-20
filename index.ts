@@ -1,5 +1,5 @@
 
-const express = require('express')
+var express = require('express')
 const cors = require('cors')
 const methodOverride = require('method-override')
 const bodyParser = require('body-parser')
@@ -13,10 +13,10 @@ const path = require('path')
 
 const logging = require('./src/shared/logging')
 
-const router = require('./src/routes/index')
+var router = require('./src/routes/index')
 
-const { APP_PORT, APP_IP, APP_PATH } = process.env
-let appPort
+var { APP_PORT, APP_IP, APP_PATH } = process.env
+let appPort: number | string
 
 // Setting variables for dev mode
 if (APP_PORT === undefined) {

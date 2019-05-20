@@ -3,9 +3,9 @@
 /**
  * @description Function to filter the first object of the object group with prop in an array of objects
  */
-const filterArrObjFirst = (arrObj, prop) => {
+const filterArrObjFirst = (arrObj: any[], prop: string) => {
 
-  let arrObjNext = []
+  let arrObjNext: any[] = []
   const keys = Object.keys(arrObj[0])
 
   arrObj.forEach(obj => {
@@ -18,7 +18,7 @@ const filterArrObjFirst = (arrObj, prop) => {
     }
   })
   arrObjNext = arrObjNext.map(item => {
-    const objNext = {}
+    const objNext: any = {}
     keys.forEach(key => {
       objNext[key] = item[key]
     })
@@ -28,7 +28,7 @@ const filterArrObjFirst = (arrObj, prop) => {
   return arrObjNext
 }
 
-const empty = mixedVar => {
+const empty = (mixedVar: any) => {
   // console.info('empty', { mixedVar })
   if (!mixedVar || mixedVar === '0') {
     return true
@@ -41,12 +41,13 @@ const empty = mixedVar => {
     return true
   }
 
-  if (toString.call(mixedVar) === '[object Array]'
+  if (typeof mixedVar === 'object'
+    && Array.isArray(mixedVar) === false 
     && mixedVar.length === 0
   ) {
     return true
   }
-  else if (toString.call(mixedVar) === '[object Array]'
+  else if (Array.isArray(mixedVar) === true
     && mixedVar.length > 0
   ) {
     return false
@@ -54,7 +55,7 @@ const empty = mixedVar => {
   return false
 }
 
-const mixedVarToArray = mixedVar => {
+const mixedVarToArray = (mixedVar: any) => {
   let output
   if (mixedVar === undefined) {
     output = []
@@ -68,23 +69,23 @@ const mixedVarToArray = mixedVar => {
   return output
 }
 
-const array_merge = (dataNext, data) => {
+const array_merge = (dataNext: any[], data: any[]) => {
   const dataNext1 = mixedVarToArray(dataNext)
   const data1 = mixedVarToArray(data)
   // console.info('array_merge', { dataNext1, data1, dataNext, data })
   return [...data1, ...dataNext1]
 }
 
-const array_unique = data => {
+const array_unique = (data: any[]) => {
   // console.info('array_unique', data)
   return [...new Set(data)]
 }
 
-const array_filter = (data, param) => {
+const array_filter = (data: any[], param: string) => {
   return data.filter(item => item.length > 0)
 }
 
-const getArrToSave2 = (record, dataInp, caseOption, prop) => {
+const getArrToSave2 = (record: any[], dataInp: any[], caseOption: string, prop: string) => {
 
   const record0 = record && record[0] ? record[0] : ''
   const dataInp0 = dataInp && dataInp[0] ? dataInp[0] : ''
@@ -141,7 +142,7 @@ const getArrToSave2 = (record, dataInp, caseOption, prop) => {
   return dataNext
 }
 
-const getArrToSave = (record, dataInp, caseOption, target) => {
+const getArrToSave = (record: any[], dataInp: any[], caseOption: string, target: any[]) => {
 
   const record0 = record && record[0] ? record[0] : ''
   const dataInp0 = dataInp && dataInp[0] ? dataInp[0] : ''
