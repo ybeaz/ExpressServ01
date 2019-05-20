@@ -1,16 +1,17 @@
-const express = require('express')
+var express = require('express')
 const uuidv4 = require('uuid/v4')
 const { MongoClient } = require('mongodb')
 
-const router = express.Router()
+import * as Interfaces from '../shared/interfaces'
 const getUserAnalytics = require('../controllers/getUserAnalytics')
 const getUserAnalytics2 = require('../controllers/getUserAnalytics2')
 const saveUserAnalytics = require('../controllers/saveUserAnalytics')
 const saveUserAnalytics2 = require('../controllers/saveUserAnalytics2')
 
-const { APP_PORT, APP_IP, APP_PATH } = process.env
-let DB_CONNECTION_STRING
-let dbName
+var router = express.Router()
+var { APP_PORT, APP_IP, APP_PATH } = process.env
+let DB_CONNECTION_STRING: string
+let dbName: string
 const collection = 'webAnalytics2'
 
 // Setting variables for dev mode
@@ -30,7 +31,8 @@ else {
 const dbAccessData = { MongoClient, dbName, DB_CONNECTION_STRING, collection }
 
 // Api url to get all rows for analytics
-router.post('/api/apiP2p/2.0', (req, res) => {
+router.post('/api/apiP2p/2.0', (
+  req: Interfaces.ExpressRequestCustom, res: Interfaces.ExpressResponseCustom) => {
 
   const bodyJson = JSON.parse(req.body)
   // console.log('app.post [0]', { bodyJson, 'req.body': req.body })
@@ -52,7 +54,8 @@ router.post('/api/apiP2p/2.0', (req, res) => {
 })
 
 // Api url to get all rows for analytics
-router.get('/api/apiP2p/2.0', (req, res) => {
+router.get('/api/apiP2p/2.0', (
+  req: Interfaces.ExpressRequestCustom, res: Interfaces.ExpressResponseCustom) => {
   // console.log('app.get [0]', { query: req.query })
 
   switch (req.query.optGet) {
@@ -81,7 +84,8 @@ router.get('/api/apiP2p/2.0', (req, res) => {
 })
 
 // Api url to get all rows for analytics
-router.post('/api/apiP2p', (req, res) => {
+router.post('/api/apiP2p', (
+  req: Interfaces.ExpressRequestCustom, res: Interfaces.ExpressResponseCustom) => {
 
   const bodyJson = JSON.parse(req.body)
   // console.log('app.post [0]', { bodyJson, 'req.body.optPost': req.body.optPost, 'req.body': req.body })
@@ -102,7 +106,8 @@ router.post('/api/apiP2p', (req, res) => {
 })
 
 // Api url to get all rows for analytics
-router.get('/api/apiP2p', (req, res) => {
+router.get('/api/apiP2p', (
+  req: Interfaces.ExpressRequestCustom, res: Interfaces.ExpressResponseCustom) => {
   // console.log('app.get [0]', JSON.stringify(req.query))
 
   switch (req.query.optGet) {
@@ -130,7 +135,8 @@ router.get('/api/apiP2p', (req, res) => {
 })
 
 // Test URL for test
-router.get('/user/:first?/:second?', (req, res) => {
+router.get('/user/:first?/:second?', (
+  req: Interfaces.ExpressRequestCustom, res: Interfaces.ExpressResponseCustom) => {
 
   //db.webAnalytics.find({'PHPSESSID' : '4855b16f7fff75719d32b52e0ae7a097'}, { _id: 0 }).pretty()
 
