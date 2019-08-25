@@ -1,4 +1,3 @@
-
 import * as Interfaces from '../shared/interfaces'
 
 // eslint-disable-next-line import/prefer-default-export
@@ -8,9 +7,9 @@ const getUserAnalytics = async (
 
   const { MongoClient, dbName, DB_CONNECTION_STRING, collection } = dbAccessData
 
-  MongoClient.connect(DB_CONNECTION_STRING, (err, db) => {
+  MongoClient.connect(DB_CONNECTION_STRING, (err, client) => {
     if (err) throw err
-    const dbo = db.db(dbName)
+    const dbo = client.db(dbName)
     dbo.collection(collection)
       .find({}, { projection: { _id: 0 }})
       // .sort({ _id: -1 })
@@ -25,7 +24,7 @@ const getUserAnalytics = async (
           const resultJson = JSON.stringify(resultNext)
           // https://stackoverflow.com/questions/19696240/proper-way-to-return-json-using-node-or-express
           console.log('getUserAnalytics->find:', result[0])
-          db.close()
+          client.close()
           res.set('Content-Type', 'application/x-www-form-urlencoded')
           return res.end(resultJson)
         },
