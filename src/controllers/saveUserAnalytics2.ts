@@ -1,4 +1,6 @@
+import { MongoClient, MongoError } from 'mongodb';
 const moment = require('moment')
+
 const serviceFunc = require('../shared/serviceFunc')
 import * as Interfaces from '../shared/interfaces'
 
@@ -10,7 +12,7 @@ const saveUserAnalytics2 = async (
   let stage = 'inception'
   let result
 
-  MongoClient.connect(DB_CONNECTION_STRING, async (err, client) => {
+  MongoClient.connect(DB_CONNECTION_STRING, async (err: MongoError, client: MongoClient) => {
     if (err) throw err
     const db = client.db(dbName)
 
