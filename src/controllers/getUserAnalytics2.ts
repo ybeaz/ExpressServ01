@@ -1,29 +1,31 @@
+import * as Interfaces from '../shared/interfaces'
 
 // eslint-disable-next-line import/prefer-default-export
-const getUserAnalytics = (req, res, dbAccessData) => {
+const getUserAnalytics = async (
+  req: Express.Request, res: Interfaces.ExpressResponseCustom,
+  dbAccessData: Interfaces.DbAccessData) => {
 
   const { MongoClient, dbName, DB_CONNECTION_STRING, collection } = dbAccessData
 
-  MongoClient.connect(DB_CONNECTION_STRING, { useNewUrlParser: true }, (err, db) => {
+  MongoClient.connect(DB_CONNECTION_STRING, (err, client) => {
     if (err) throw err
-    const dbo = db.db(dbName)
+    const dbo = client.db(dbName)
     dbo.collection(collection)
-      .find({}, { _id: 0 })
+      .find({}, { projection: { _id: 0 }})
       // .sort({ _id: -1 })
       .toArray(
         (errFind, result) => {
           if (errFind) throw errFind
-          const resultNext = []
-          result.forEach(item => {
+          const resultNext: any[] = []
+          result.forEach((item: any) => {
             const itemNext = item
-            delete itemNext['_id']
             resultNext.push(itemNext)
           })
           const resultJson = JSON.stringify(resultNext)
           // https://stackoverflow.com/questions/19696240/proper-way-to-return-json-using-node-or-express
           console.log('getUserAnalytics->find:', result[0])
-          db.close()
-          res.setHeader('Content-Type', 'application/x-www-form-urlencoded')
+          client.close()
+          res.set('Content-Type', 'application/x-www-form-urlencoded')
           return res.end(resultJson)
         },
       )
